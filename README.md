@@ -6,7 +6,7 @@ Tool to audit a folder full of Secretsdump output for Service Account creds in c
 ___
 
 # Usage:
-- First, run mass secretsdump against domain hosts. (Use hostnames as the target for the secretsdump so the output filenames include that value --- or alternatively you can just use --lsa and --sam functionality of Netexec and point this tool to the ~/.nxc/logs directory as NetExec will include the hostname in the output filename....)
+- First, run mass secretsdump against all domain hosts. (Use hostnames as the target for the secretsdump so the output filenames include that value --- or alternatively you can just use --lsa and --sam functionality of Netexec and point this tool to the ~/.nxc/logs directory as NetExec will include the hostname in the output filename....)
 - Run the tool... 
 ```zsh
 DumpInspector.py -d <path-to-secretsdump-folder> [-o OUTPUT]
