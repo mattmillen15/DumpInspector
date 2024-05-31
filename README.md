@@ -3,10 +3,14 @@ Tool to audit a folder full of Secretsdump output for Service Account creds in c
 
 ___
 
-# Instructions:
-- Run mass secretsdump against domain hosts (using hostnames as the target for the secretsdump so the output filenames include that value).
-- Run DumpInspector.py from the folder containing all the secretsdump output.
-- Open up DumpInspector_Results.xlsx and confirm results. Note that for local admin reuse you'll need to confirm both that the listed accounts are actually local admin and are not disabled.
+# Usage:
+- First, run mass secretsdump against domain hosts (using hostnames as the target for the secretsdump so the output filenames include that value)
+- Run the tool... 
+```zsh
+DumpInspector.py -d <path-to-secretsdump-folder> [-o OUTPUT]
+```
+
+![image](https://github.com/mattmillen15/DumpInspector/assets/68832392/7de1ac32-86cb-400a-b5f3-9f7d73ff9b1f)
 
 ___
 
