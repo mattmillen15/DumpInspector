@@ -59,7 +59,7 @@ def process_sam_files():
     return results
 
 # Create the output file and write the header
-output_file = 'CredAudit_Results.xlsx'
+output_file = 'DumpInspector_Results.xlsx'
 
 # Process .secrets files
 secrets_data = process_secrets_files()
