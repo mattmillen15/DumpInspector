@@ -1,5 +1,5 @@
 # DumpInspector
-Tool to audit a folder full of Secretsdump output for Service Account creds in plaintext as well as local admin reuse.
+Tool to audit a folder full of Secretsdump output for Service Account creds in plaintext as well as local admin credential reuse.
 
 **NOTE: This tool doesn't sanitize the data... probably should audit the results yourself if intended for client eyes...*
 
