@@ -131,5 +131,7 @@ def main():
         apply_styles(secrets_sheet)
         apply_styles(sam_sheet)
 
+    print(f"\n[+] Success! ---> DumpInspector results can be found at {os.path.abspath(args.output)}\n")
+
 if __name__ == "__main__":
     main()
