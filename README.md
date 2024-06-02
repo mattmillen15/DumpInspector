@@ -21,13 +21,13 @@ ___
 	- To make this portion more efficient (at least for me), I built on an idea by an old co-worker of mine by putting together a multi-threaded Secretsdump.py wrapper in python --- you can find that here: [SwiftSecrets](https://github.com/mattmillen15/SwiftSecrets) 
 - Run the tool... 
 ```zsh
-DumpInspector.py -d <path-to-secretsdump-folder> [-o OUTPUT]
+DumpInspector.py -d <path-to-secretsdump-folder> [-o OUTPUT] [--no-verify]
 ```
+![image](https://github.com/mattmillen15/DumpInspector/assets/68832392/0604202b-b9cb-4694-8590-0598bc98abb5)
 
-![image](https://github.com/mattmillen15/DumpInspector/assets/68832392/7de1ac32-86cb-400a-b5f3-9f7d73ff9b1f)
-
+![image](https://github.com/mattmillen15/DumpInspector/assets/68832392/f2a3f6ea-b7d8-43a9-b7b9-d9033476f5bc)
 ___
-
+## Sample Output:
 ![image](https://github.com/mattmillen15/DumpInspector/assets/68832392/5df1657a-b087-419f-b554-62d5db061d95)
 
 ![image](https://github.com/mattmillen15/DumpInspector/assets/68832392/ca2e68e4-12f3-4070-9088-d2173f28eb36)
