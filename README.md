@@ -10,8 +10,9 @@ This script will:
 - Extracts plaintext service account credentials retreived from LSA Secrets.
 - Extracts local admin credentials from SAM files.
 - Removes all the junk and outputs results to a multi-tab Excel sheet.
+- Optional: Uses NetExec to verify re-used accounts are valid and actually have local admin rights. (Note, this isn't a perfect science... UAC can prevent a local admin account from showing as such with remote tools such as NetExec. If you're concerned about this -> Just use the unverified results.)
+- Optional: Provides a sanitized version of the .xlsx file, with the password / hash columns redacted. **NOTE: Even with the sanitize options you should probably audit the results yourself if intended for client eyes...*
 
-**NOTE: This tool doesn't sanitize the data... probably should audit the results yourself if intended for client eyes...*
 ___
 
 # Usage:
