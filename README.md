@@ -1,8 +1,8 @@
 # DumpInspector
 Tool to audit a folder full of Secretsdump output for Service Account creds in plaintext as well as local admin credential reuse.
 <p align="center">
-  <img src="https://github.com/mattmillen15/DumpInspector/assets/68832392/600bda72-5f61-4c3b-a49a-f3357db7b2dc" height="160"/>
-  <img src="https://github.com/mattmillen15/DumpInspector/assets/68832392/2c423575-0018-4ba1-bc13-9f699bd99524" height="160"/>
+  <img src="https://github.com/mattmillen15/DumpInspector/assets/68832392/600bda72-5f61-4c3b-a49a-f3357db7b2dc" height="150"/>
+  <img src="https://github.com/mattmillen15/DumpInspector/assets/68832392/2c423575-0018-4ba1-bc13-9f699bd99524" height="150"/>
 </p>
 
 ___
