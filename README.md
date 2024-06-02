@@ -1,7 +1,11 @@
 # DumpInspector
 Tool to audit a folder full of Secretsdump output for Service Account creds in plaintext as well as local admin credential reuse.
-___
+<p align="center">
+  <img src="https://github.com/mattmillen15/DumpInspector/assets/68832392/600bda72-5f61-4c3b-a49a-f3357db7b2dc" height="150"/>
+  <img src="https://github.com/mattmillen15/DumpInspector/assets/68832392/50d81e8b-7081-4001-8c70-2e7c9165e681" height="150"/>
+</p>
 
+___
 
 This script was intended to be used to streamline domain-wide audits of locally stored credentials. For streamlining of the Secretsdump portion of this, see it's sister script [SwiftSecrets](https://github.com/mattmillen15/SwiftSecrets). 
 
@@ -26,10 +30,11 @@ DumpInspector.py -d <path-to-secretsdump-folder> [-o OUTPUT] [--no-verify]
 ```
 ![image](https://github.com/mattmillen15/DumpInspector/assets/68832392/0604202b-b9cb-4694-8590-0598bc98abb5)
 ![image](https://github.com/mattmillen15/DumpInspector/assets/68832392/47ba8bd4-2bc4-4700-9ac8-8d4fd82c534c)
+
 ___
-## Sample Output:
-![image](https://github.com/mattmillen15/DumpInspector/assets/68832392/600bda72-5f61-4c3b-a49a-f3357db7b2dc)
-![image](https://github.com/mattmillen15/DumpInspector/assets/68832392/50d81e8b-7081-4001-8c70-2e7c9165e681)
+
+![image](https://github.com/mattmillen15/DumpInspector/assets/68832392/0807fb43-550f-4aa1-bf6d-258452644478)
+
 ___
 
 ## Service Account Credentials in Plaintext: Understanding the Risk and Mitigation Strategies
