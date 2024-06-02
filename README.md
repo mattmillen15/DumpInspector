@@ -32,9 +32,7 @@ DumpInspector.py -d <path-to-secretsdump-folder> [-o OUTPUT] [--no-verify]
 ![image](https://github.com/mattmillen15/DumpInspector/assets/68832392/47ba8bd4-2bc4-4700-9ac8-8d4fd82c534c)
 
 ___
-
-![image](https://github.com/mattmillen15/DumpInspector/assets/68832392/0807fb43-550f-4aa1-bf6d-258452644478)
-
+![image](https://github.com/mattmillen15/DumpInspector/assets/68832392/2c423575-0018-4ba1-bc13-9f699bd99524)
 ___
 
 ## Service Account Credentials in Plaintext: Understanding the Risk and Mitigation Strategies
