@@ -25,14 +25,11 @@ ___
 DumpInspector.py -d <path-to-secretsdump-folder> [-o OUTPUT] [--no-verify]
 ```
 ![image](https://github.com/mattmillen15/DumpInspector/assets/68832392/0604202b-b9cb-4694-8590-0598bc98abb5)
-
-![image](https://github.com/mattmillen15/DumpInspector/assets/68832392/f2a3f6ea-b7d8-43a9-b7b9-d9033476f5bc)
+![image](https://github.com/mattmillen15/DumpInspector/assets/68832392/47ba8bd4-2bc4-4700-9ac8-8d4fd82c534c)
 ___
 ## Sample Output:
-![image](https://github.com/mattmillen15/DumpInspector/assets/68832392/5df1657a-b087-419f-b554-62d5db061d95)
-
-![image](https://github.com/mattmillen15/DumpInspector/assets/68832392/ca2e68e4-12f3-4070-9088-d2173f28eb36)
-
+![image](https://github.com/mattmillen15/DumpInspector/assets/68832392/600bda72-5f61-4c3b-a49a-f3357db7b2dc)
+![image](https://github.com/mattmillen15/DumpInspector/assets/68832392/50d81e8b-7081-4001-8c70-2e7c9165e681)
 ___
 
 ## Service Account Credentials in Plaintext: Understanding the Risk and Mitigation Strategies
