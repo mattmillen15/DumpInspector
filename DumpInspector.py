@@ -22,16 +22,26 @@ def validate_data(data):
         valid_data.append([hostname, account, value])
     return valid_data
 
+def strip_hostname(file):
+    basename = os.path.basename(file).lower()
+    for suffix in ['.secretsdump.secrets', '_regsecrets.secrets', '_regsecrets.sam', '.secretsdump.sam']:
+        if basename.endswith(suffix):
+            return basename.replace(suffix, '')
+    return basename.replace('.secrets', '')
+
 def process_secrets_files(directory):
     results = []
     for file in os.listdir(directory):
         if file.endswith('.secrets'):
             file_path = os.path.join(directory, file)
             if os.path.isfile(file_path) and os.access(file_path, os.R_OK):
-                hostname = os.path.basename(file).replace('.secretsdump.secrets', '').lower()
+                hostname = strip_hostname(file)
                 with open(file_path, 'r') as f:
                     for line in f:
-                        if "SCM:{" in line or any(keyword in line for keyword in ['aes256', 'aes128', 'plain_password', 'des-cbc', 'dpapi', 'NL$KM', 'L$ASP.NET', 'L$_RasConn', 'aad3b435b51404eeaad3b435b51404ee', 'Security', 'RasDial', '| ', 'Version']):
+                        if "SCM:{" in line or any(keyword in line for keyword in [
+                            'aes256', 'aes128', 'plain_password', 'des-cbc', 'dpapi', 'NL$KM',
+                            'L$ASP.NET', 'L$_RasConn', 'aad3b435b51404eeaad3b435b51404ee',
+                            'Security', 'RasDial', '| ', 'Version']):
                             continue
                         if ':' in line:
                             account, password = line.split(':', 1)
@@ -47,7 +57,7 @@ def process_sam_files(directory):
         if file.endswith('.sam'):
             file_path = os.path.join(directory, file)
             if os.path.isfile(file_path) and os.access(file_path, os.R_OK):
-                hostname = os.path.basename(file).replace('.secretsdump.sam', '').lower()
+                hostname = strip_hostname(file)
                 with open(file_path, 'r') as f:
                     for line in f:
                         if any(keyword in line for keyword in ['Default', 'Guest', 'WDAGUtility']):
@@ -67,7 +77,7 @@ def get_pwned_label(tool):
         config.read(config_path)
         if 'pwn3d_label' in config['DEFAULT']:
             return config['DEFAULT']['pwn3d_label']
-    return 'Pwn3d'
+    return 'Admin!'
 
 def log_message(message, log_file):
     with open(log_file, 'a') as log:
@@ -78,8 +88,7 @@ def verify_local_admin_access(hostname, account, nt_hash, pwned_label, log_file)
     if netexec_exists:
         command = f'netexec smb {hostname} -u {account} -H {nt_hash} --local-auth'
     else:
-        print("\nNetExec doesn't exist, using CrackMapExec instead...\n")
-        log_message("NetExec doesn't exist, using CrackMapExec instead...", log_file)
+        log_message("NetExec not found, using CrackMapExec instead...", log_file)
         command = f'crackmapexec smb {hostname} -u {account} -H {nt_hash} --local-auth'
 
     try:
@@ -88,14 +97,9 @@ def verify_local_admin_access(hostname, account, nt_hash, pwned_label, log_file)
         if pwned_label in result.stdout:
             return (hostname, account, nt_hash)
     except subprocess.TimeoutExpired:
-        error_message = f"Timeout expired for {command}"
-        print(f"\n{error_message}\n")
-        log_message(error_message, log_file)
+        log_message(f"Timeout expired for {command}", log_file)
     except Exception as e:
-        error_message = f"Error verifying local admin access for {account}@{hostname}: {e}"
-        print(f"\n{error_message}\n")
-        log_message(error_message, log_file)
-    
+        log_message(f"Error verifying {account}@{hostname}: {e}", log_file)
     return None
 
 def apply_styles(sheet):
@@ -134,12 +138,8 @@ def create_sanitized_file(df_secrets, df_sam, output_file):
         df_secrets.to_excel(writer, index=False, sheet_name='Service Account Cleartext Audit')
         df_sam.to_excel(writer, index=False, sheet_name='Local Admin Reuse Audit')
 
-        workbook = writer.book
-        secrets_sheet = writer.sheets['Service Account Cleartext Audit']
-        sam_sheet = writer.sheets['Local Admin Reuse Audit']
-
-        apply_styles(secrets_sheet)
-        apply_styles(sam_sheet)
+        apply_styles(writer.sheets['Service Account Cleartext Audit'])
+        apply_styles(writer.sheets['Local Admin Reuse Audit'])
 
     print(f"\n[+] Sanitized file created: {os.path.abspath(sanitized_output_file)}\n")
 
@@ -150,12 +150,8 @@ def create_unverified_file(df_secrets, df_sam, output_file):
         df_secrets.to_excel(writer, index=False, sheet_name='Service Account Cleartext Audit')
         df_sam.to_excel(writer, index=False, sheet_name='Local Admin Reuse Audit')
 
-        workbook = writer.book
-        secrets_sheet = writer.sheets['Service Account Cleartext Audit']
-        sam_sheet = writer.sheets['Local Admin Reuse Audit']
-
-        apply_styles(secrets_sheet)
-        apply_styles(sam_sheet)
+        apply_styles(writer.sheets['Service Account Cleartext Audit'])
+        apply_styles(writer.sheets['Local Admin Reuse Audit'])
 
     print(f"\n[+] Unverified file created: {os.path.abspath(unverified_output_file)}")
 
@@ -165,12 +161,8 @@ def write_to_excel(df_secrets, df_sam, output_file, log_file):
             df_secrets.to_excel(writer, index=False, sheet_name='Service Account Cleartext Audit')
             df_sam.to_excel(writer, index=False, sheet_name='Local Admin Reuse Audit')
 
-            workbook = writer.book
-            secrets_sheet = writer.sheets['Service Account Cleartext Audit']
-            sam_sheet = writer.sheets['Local Admin Reuse Audit']
-
-            apply_styles(secrets_sheet)
-            apply_styles(sam_sheet)
+            apply_styles(writer.sheets['Service Account Cleartext Audit'])
+            apply_styles(writer.sheets['Local Admin Reuse Audit'])
 
         log_message(f"Successfully wrote data to {output_file}", log_file)
         print(f"\n[+] Success! ---> DumpInspector results can be found at {os.path.abspath(output_file)}")
@@ -190,9 +182,9 @@ def sanitize_dataframe(df):
 
 def main():
     parser = argparse.ArgumentParser(description="DumpInspector - A tool for auditing domain hosts' credential dumps.")
-    parser.add_argument('-d', '--directory', help="<path-to-secretsdump-folder> containing the secretsdump output files.", required=True)
-    parser.add_argument('-o', '--output', help="Output Excel file name (must end with .xlsx).")
-    parser.add_argument('--no-verify', action='store_true', help="Skip the local admin verification step.")
+    parser.add_argument('-d', '--directory', required=True)
+    parser.add_argument('-o', '--output')
+    parser.add_argument('--no-verify', action='store_true')
 
     args = parser.parse_args()
 
@@ -224,22 +216,25 @@ def main():
             verify_admin = input("\nAudit of Secretsdump data complete, would you like to confirm local admin results using NetExec? (Y/N): ").strip().lower()
         except EOFError:
             verify_admin = 'n'
-        
+
         if verify_admin == 'y':
             print()
             pwned_label = get_pwned_label('nxc') if subprocess.run(['which', 'netexec'], capture_output=True, text=True).returncode == 0 else get_pwned_label('cme')
-            
+
             verified_sam_data = []
             with tqdm(total=len(df_sam), desc="Verifying local admin access") as pbar:
                 with ThreadPoolExecutor(max_workers=10) as executor:
-                    futures = {executor.submit(verify_local_admin_access, row.HOST, row.ACCOUNT, row._2, pwned_label, log_file): row for row in df_sam.itertuples(index=False)}
+                    futures = {
+                        executor.submit(verify_local_admin_access, row[0], row[1], row[2], pwned_label, log_file): row
+                        for row in df_sam.itertuples(index=False, name=None)
+                    }
                     for future in as_completed(futures):
                         result = future.result()
                         if result:
                             verified_sam_data.append(result)
                         pbar.update(1)
                         time.sleep(0.1)
-            
+
             df_sam = pd.DataFrame(verified_sam_data, columns=['HOST', 'ACCOUNT', 'NT HASH'])
             if df_sam.empty:
                 print("\nNote: No valid local admin re-use identified from Secretsdump output.")
@@ -249,7 +244,6 @@ def main():
             log_message("Skipping local admin validation checks...", log_file)
             return
 
-    # Keep only duplicate accounts with the same name and NT hash
     df_sam = df_sam[df_sam.duplicated(subset=['ACCOUNT', 'NT HASH'], keep=False)]
     df_sam = df_sam.sort_values(by=['NT HASH', 'ACCOUNT'])
 
