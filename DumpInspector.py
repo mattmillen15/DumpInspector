@@ -56,6 +56,10 @@ def strip_hostname(filename):
     basename = os.path.basename(filename).lower()
     suffixes = [
         '.secretsdump.secrets', '_regsecrets.secrets', '.secretsdump.sam', '_regsecrets.sam',
+        # Titandump-specific suffixes must precede their shorter generic counterparts
+        '_titandump_ntds_hashes.txt', '_titandump_backupkey.txt',
+        '_titandump_ntds.txt', '_titandump_all.txt', '_titandump_dpapi.txt',
+        '_titandump_cache.txt', '_titandump_lsa.txt', '_titandump_sam.txt',
         '.dpapi', '_dpapi.txt', '.dpapidump', '_dpapidump.txt',
         '.secrets', '.sam', '.txt'
     ]
@@ -72,21 +76,50 @@ def process_secrets_files(directory):
     ]
     results = []
     for file in os.listdir(directory):
-        if not file.endswith('.secrets'):
+        is_secretsdump = file.endswith('.secrets')
+        is_titandump_lsa = file.endswith('_titandump_lsa.txt')
+        if not (is_secretsdump or is_titandump_lsa):
             continue
         file_path = os.path.join(directory, file)
         if not (os.path.isfile(file_path) and os.access(file_path, os.R_OK)):
             continue
         hostname = strip_hostname(file)
-        with open(file_path, 'r') as f:
-            for line in f:
-                if "SCM:{" in line or any(kw in line for kw in skip_keywords):
-                    continue
-                if ':' in line:
-                    account, password = line.split(':', 1)
-                    password = password.strip()
-                    if len(password) <= 50:
-                        results.append([sanitize(hostname), sanitize(account.strip().lower()), sanitize(password)])
+
+        if is_titandump_lsa:
+            # Titandump LSA format: multi-line _SC_ service account blocks
+            # _SC_ServiceName
+            #   Account:  DOMAIN\user
+            #   Password: somepassword
+            with open(file_path, 'r', errors='ignore') as f:
+                lines = f.readlines()
+            i = 0
+            while i < len(lines):
+                stripped = lines[i].strip()
+                if stripped.startswith('_SC_'):
+                    account = password = None
+                    j = i + 1
+                    while j < len(lines) and (j - i) < 6:
+                        nl = lines[j].strip()
+                        if nl.lower().startswith('account:'):
+                            account = nl.split(':', 1)[1].strip()
+                        elif nl.lower().startswith('password:'):
+                            password = nl.split(':', 1)[1].strip()
+                        elif nl.startswith('_SC_') or (nl and not nl.startswith('(old)')):
+                            break
+                        j += 1
+                    if account and password and '[unresolved]' not in account:
+                        results.append([sanitize(hostname), sanitize(account.lower()), sanitize(password)])
+                i += 1
+        else:
+            with open(file_path, 'r') as f:
+                for line in f:
+                    if "SCM:{" in line or any(kw in line for kw in skip_keywords):
+                        continue
+                    if ':' in line:
+                        account, password = line.split(':', 1)
+                        password = password.strip()
+                        if len(password) <= 50:
+                            results.append([sanitize(hostname), sanitize(account.strip().lower()), sanitize(password)])
     return results
 
 def process_sam_files(directory):
@@ -94,13 +127,14 @@ def process_sam_files(directory):
     null_hash = '31d6cfe0d16ae931b73c59d7e0c089c0'
     results = []
     for file in os.listdir(directory):
-        if not file.endswith('.sam'):
+        is_sam = file.endswith('.sam') or file.endswith('_titandump_sam.txt')
+        if not is_sam:
             continue
         file_path = os.path.join(directory, file)
         if not (os.path.isfile(file_path) and os.access(file_path, os.R_OK)):
             continue
         hostname = strip_hostname(file)
-        with open(file_path, 'r') as f:
+        with open(file_path, 'r', errors='ignore') as f:
             for line in f:
                 if any(kw in line for kw in skip_accounts):
                     continue
@@ -117,6 +151,9 @@ def process_dpapi_files(directory):
     for file in os.listdir(directory):
         if 'dpapi' not in file.lower():
             continue
+        # _titandump_all.txt contains all sections; skip to avoid duplicates
+        if file.lower().endswith('_titandump_all.txt'):
+            continue
         file_path = os.path.join(directory, file)
         if not (os.path.isfile(file_path) and os.access(file_path, os.R_OK)):
             continue
@@ -124,6 +161,7 @@ def process_dpapi_files(directory):
         with open(file_path, 'r', errors='ignore') as f:
             content = f.read()
 
+        # Original secretsdump format: [CREDENTIAL] blocks
         for block in content.split('[CREDENTIAL]')[1:]:
             if 'TaskScheduler:Task:' not in block:
                 continue
@@ -137,6 +175,42 @@ def process_dpapi_files(directory):
                     break
             if username and password:
                 results.append([sanitize(hostname), sanitize(username), sanitize(password)])
+
+        # Titandump format: [*] Windows Credential Manager entries
+        # Target:   TaskScheduler:Task:{...}
+        # Username: DOMAIN\user
+        # Password: somepassword
+        if '[*] Windows Credential Manager' in content:
+            target = username = password = None
+            in_credman = False
+            for line in content.split('\n'):
+                stripped = line.strip()
+                if '[*] Windows Credential Manager' in stripped:
+                    in_credman = True
+                    target = username = password = None
+                    continue
+                if not in_credman:
+                    continue
+                # New top-level section ends the credman block
+                if stripped.startswith('[*] ') and 'Windows Credential Manager' not in stripped:
+                    if target and 'TaskScheduler:Task:' in target and username and password:
+                        results.append([sanitize(hostname), sanitize(username), sanitize(password)])
+                    in_credman = False
+                    target = username = password = None
+                    continue
+                if stripped.lower().startswith('target:'):
+                    if target and 'TaskScheduler:Task:' in target and username and password:
+                        results.append([sanitize(hostname), sanitize(username), sanitize(password)])
+                    target = stripped.split(':', 1)[1].strip()
+                    username = password = None
+                elif stripped.lower().startswith('username:'):
+                    username = stripped.split(':', 1)[1].strip()
+                elif stripped.lower().startswith('password:'):
+                    password = stripped.split(':', 1)[1].strip()
+            # Capture last entry
+            if in_credman and target and 'TaskScheduler:Task:' in target and username and password:
+                results.append([sanitize(hostname), sanitize(username), sanitize(password)])
+
     return results
 
 def get_pwned_label():
@@ -225,7 +299,7 @@ def main():
         print("    No plaintext service account credentials found.")
 
     sam_data = process_sam_files(args.directory)
-    df_sam = pd.DataFrame(sam_data, columns=['HOST', 'ACCOUNT', 'NT HASH'])
+    df_sam = pd.DataFrame(sam_data, columns=['HOST', 'ACCOUNT', 'NT HASH']).drop_duplicates()
 
     print("[+] Auditing DPAPI dump output for Task Scheduler credentials...")
     dpapi_data = process_dpapi_files(args.directory)
