@@ -54,6 +54,10 @@ def sanitize(text):
 
 def strip_hostname(filename):
     basename = os.path.basename(filename).lower()
+    # Handle <FQDN>_dump_<type>.txt pattern (e.g. HOST.domain_dump_sam.txt)
+    m = re.match(r'^(.+)_dump_\w+\.txt$', basename)
+    if m:
+        return m.group(1)
     suffixes = [
         '.secretsdump.secrets', '_regsecrets.secrets', '.secretsdump.sam', '_regsecrets.sam',
         # Titandump-specific suffixes must precede their shorter generic counterparts
@@ -77,7 +81,8 @@ def process_secrets_files(directory):
     results = []
     for file in os.listdir(directory):
         is_secretsdump = file.endswith('.secrets')
-        is_titandump_lsa = file.endswith('_titandump_lsa.txt')
+        is_titandump_lsa = (file.endswith('_titandump_lsa.txt') or
+                            bool(re.search(r'_dump_lsa\.txt$', file)))
         if not (is_secretsdump or is_titandump_lsa):
             continue
         file_path = os.path.join(directory, file)
@@ -127,7 +132,9 @@ def process_sam_files(directory):
     null_hash = '31d6cfe0d16ae931b73c59d7e0c089c0'
     results = []
     for file in os.listdir(directory):
-        is_sam = file.endswith('.sam') or file.endswith('_titandump_sam.txt')
+        is_sam = (file.endswith('.sam') or
+                  file.endswith('_titandump_sam.txt') or
+                  bool(re.search(r'_dump_sam\.txt$', file)))
         if not is_sam:
             continue
         file_path = os.path.join(directory, file)
@@ -151,8 +158,9 @@ def process_dpapi_files(directory):
     for file in os.listdir(directory):
         if 'dpapi' not in file.lower():
             continue
-        # _titandump_all.txt contains all sections; skip to avoid duplicates
-        if file.lower().endswith('_titandump_all.txt'):
+        # _all files contain all sections combined; skip to avoid duplicates
+        if (file.lower().endswith('_titandump_all.txt') or
+                bool(re.search(r'_dump_all\.txt$', file.lower()))):
             continue
         file_path = os.path.join(directory, file)
         if not (os.path.isfile(file_path) and os.access(file_path, os.R_OK)):
